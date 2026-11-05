@@ -1,0 +1,746 @@
+{
+ "model_version": "0.2.0",
+ "defaults": {
+  "floor": 0.12,
+  "fat": 0.3,
+  "ue": 0.004,
+  "us": 0.009,
+  "ufat": 0.6,
+  "ctrE": 0.035,
+  "ctrS": 0.09
+ },
+ "cohort": 10000,
+ "incrementality": 0.7,
+ "cost_email": 0.003,
+ "cost_sms": 0.05,
+ "response_multiplier": 1,
+ "funnel": {
+  "vis": 200000,
+  "s1": 0.3,
+  "s2": 0.6,
+  "ap": 0.7,
+  "ac": 0.45,
+  "cold": 150000
+ },
+ "sensitivity_shock": 0.25,
+ "types": {
+  "applied": {
+   "label": "Solicitud enviada (Financiar Applied)",
+   "desc": "Lead que completó la solicitud y fue redirigido. Welcome T1 a T3, recordatorios de aplicado y T&C.",
+   "re": 0.018,
+   "rs": 0.03,
+   "tau": 6,
+   "V": 14,
+   "L0": 11,
+   "sched": [
+    [
+     0.01,
+     "s",
+     "SMS: solicitud recibida",
+     "Continuar con importe"
+    ],
+    [
+     0.04,
+     "e",
+     "Welcome T1 (1 h tras solicitar)",
+     "Continuar"
+    ],
+    [
+     0.12,
+     "s",
+     "SMS: completa tu oferta",
+     "Continuar con importe"
+    ],
+    [
+     0.25,
+     "e",
+     "Comparativa de lenders",
+     "Continuar"
+    ],
+    [
+     0.5,
+     "s",
+     "SMS: tu oferta caduca hoy",
+     "Continuar con importe"
+    ],
+    [
+     1,
+     "e",
+     "Reminder applied T1 (1 d)",
+     "Continuar"
+    ],
+    [
+     1.5,
+     "s",
+     "SMS recordatorio",
+     "Continuar"
+    ],
+    [
+     2,
+     "e",
+     "Welcome T2 (2 d)",
+     "Gracias tarjetas 3"
+    ],
+    [
+     3,
+     "e",
+     "Reminder applied T2 (3 d)",
+     "Continuar"
+    ],
+    [
+     3.5,
+     "s",
+     "SMS recordatorio",
+     "Continuar"
+    ],
+    [
+     4,
+     "e",
+     "Welcome T3 (4 d)",
+     "Préstamos sin intereses"
+    ],
+    [
+     5,
+     "s",
+     "Reminder applied T3 (5 d)",
+     "Continuar"
+    ],
+    [
+     8,
+     "e",
+     "T&C créditos T1 (8 d)",
+     "Comparador T&C"
+    ],
+    [
+     12,
+     "s",
+     "SMS comparador",
+     "Comparador T&C"
+    ],
+    [
+     20,
+     "e",
+     "T&C créditos T2 (20 d)",
+     "Comparador T&C"
+    ],
+    [
+     35,
+     "e",
+     "T&C créditos T3 (35 d)",
+     "Comparador T&C"
+    ],
+    [
+     55,
+     "e",
+     "Recordatorio largo T1 (55 d)",
+     "Continuar"
+    ],
+    [
+     85,
+     "s",
+     "SMS reactivación",
+     "Continuar"
+    ],
+    [
+     110,
+     "e",
+     "Recordatorio largo T2 (110 d)",
+     "Continuar"
+    ],
+    [
+     145,
+     "s",
+     "SMS reactivación",
+     "Continuar"
+    ],
+    [
+     180,
+     "e",
+     "Último aviso y baja suave",
+     "Preferencias"
+    ]
+   ]
+  },
+  "first": {
+   "label": "Abandono en el primer paso (First reminder)",
+   "desc": "Empezó el alta pero no llegó a solicitar. First reminder T1 a T4 y refuerzo por SMS.",
+   "re": 0.025,
+   "rs": 0.04,
+   "tau": 3,
+   "V": 12,
+   "L0": 6,
+   "sched": [
+    [
+     0.01,
+     "s",
+     "SMS: ¿te ayudamos a terminar?",
+     "Continuar con importe"
+    ],
+    [
+     0.04,
+     "e",
+     "First reminder T1 (1 h tras el primer paso)",
+     "Continuar"
+    ],
+    [
+     0.17,
+     "s",
+     "SMS: tu importe sigue reservado",
+     "Continuar con importe"
+    ],
+    [
+     0.33,
+     "e",
+     "Ventajas e importe",
+     "Continuar con importe"
+    ],
+    [
+     0.7,
+     "s",
+     "SMS último aviso del día",
+     "Continuar con importe"
+    ],
+    [
+     1,
+     "e",
+     "First reminder T2 (1 d)",
+     "Continuar"
+    ],
+    [
+     1.5,
+     "s",
+     "SMS recordatorio",
+     "Continuar"
+    ],
+    [
+     3,
+     "e",
+     "First reminder T3 (3 d)",
+     "Continuar"
+    ],
+    [
+     4,
+     "s",
+     "SMS recordatorio",
+     "Continuar"
+    ],
+    [
+     6,
+     "e",
+     "First reminder T4 (6 d)",
+     "Continuar"
+    ],
+    [
+     9,
+     "s",
+     "SMS recordatorio",
+     "Continuar"
+    ],
+    [
+     14,
+     "e",
+     "Últimas ofertas",
+     "Continuar con importe"
+    ],
+    [
+     21,
+     "s",
+     "SMS recordatorio",
+     "Continuar"
+    ],
+    [
+     30,
+     "e",
+     "Recordatorio mensual",
+     "Continuar"
+    ],
+    [
+     45,
+     "e",
+     "Recordatorio largo T1",
+     "Continuar"
+    ],
+    [
+     60,
+     "s",
+     "SMS reactivación",
+     "Continuar"
+    ],
+    [
+     90,
+     "e",
+     "Recordatorio largo T2",
+     "Continuar"
+    ],
+    [
+     120,
+     "s",
+     "SMS reactivación",
+     "Continuar"
+    ],
+    [
+     150,
+     "e",
+     "Recordatorio largo T3",
+     "Continuar"
+    ],
+    [
+     180,
+     "e",
+     "Último aviso y baja suave",
+     "Preferencias"
+    ]
+   ]
+  },
+  "fail": {
+   "label": "Rechazado por todos los lenders (T&C / gracias)",
+   "desc": "Ningún lender aceptó el lead. Alternativas con tarjetas, préstamos sin intereses y comparador T&C.",
+   "re": 0.008,
+   "rs": 0.012,
+   "tau": 20,
+   "V": 6,
+   "L0": 2,
+   "sched": [
+    [
+     0.04,
+     "e",
+     "Gracias con alternativas",
+     "Comparador T&C"
+    ],
+    [
+     0.25,
+     "s",
+     "SMS: otras opciones para ti",
+     "Comparador T&C"
+    ],
+    [
+     0.6,
+     "e",
+     "Cómo mejorar tus opciones",
+     "Comparador T&C"
+    ],
+    [
+     1,
+     "e",
+     "Gracias tarjetas 3 (1 d)",
+     "Gracias tarjetas 3"
+    ],
+    [
+     2,
+     "s",
+     "SMS tarjetas",
+     "Gracias tarjetas 3"
+    ],
+    [
+     3,
+     "e",
+     "Préstamos sin intereses (3 d)",
+     "Préstamos sin intereses"
+    ],
+    [
+     8,
+     "e",
+     "T&C créditos T1 (8 d)",
+     "Comparador T&C"
+    ],
+    [
+     14,
+     "s",
+     "SMS comparador",
+     "Comparador T&C"
+    ],
+    [
+     20,
+     "e",
+     "T&C créditos T2 (20 d)",
+     "Comparador T&C"
+    ],
+    [
+     35,
+     "e",
+     "T&C créditos T3 (35 d)",
+     "Comparador T&C"
+    ],
+    [
+     55,
+     "e",
+     "Recordatorio largo T1",
+     "Comparador T&C"
+    ],
+    [
+     80,
+     "s",
+     "SMS reactivación",
+     "Comparador T&C"
+    ],
+    [
+     110,
+     "e",
+     "Recordatorio largo T2",
+     "Comparador T&C"
+    ],
+    [
+     145,
+     "s",
+     "SMS reactivación",
+     "Comparador T&C"
+    ],
+    [
+     180,
+     "e",
+     "Último aviso y baja suave",
+     "Preferencias"
+    ]
+   ]
+  },
+  "asnef": {
+   "label": "Lead con ASNEF (evento ASNEF)",
+   "desc": "Remarks ASNEF = sí. T1 1 h y T2 2 d a Gracias ASNEF, con refuerzo y alternativas.",
+   "re": 0.01,
+   "rs": 0.015,
+   "tau": 10,
+   "V": 8,
+   "L0": 3,
+   "sched": [
+    [
+     0.04,
+     "e",
+     "ASNEF T1 (1 h tras solicitar)",
+     "Gracias ASNEF"
+    ],
+    [
+     0.25,
+     "s",
+     "SMS: opciones con ASNEF",
+     "Gracias ASNEF"
+    ],
+    [
+     0.55,
+     "e",
+     "Guía para salir de ASNEF",
+     "Gracias ASNEF"
+    ],
+    [
+     1,
+     "s",
+     "SMS recordatorio",
+     "Gracias ASNEF"
+    ],
+    [
+     2,
+     "e",
+     "ASNEF T2 (2 d)",
+     "Gracias ASNEF"
+    ],
+    [
+     4,
+     "s",
+     "SMS recordatorio",
+     "Gracias ASNEF"
+    ],
+    [
+     7,
+     "e",
+     "Alternativas sin ASNEF",
+     "Gracias ASNEF"
+    ],
+    [
+     12,
+     "s",
+     "SMS recordatorio",
+     "Gracias ASNEF"
+    ],
+    [
+     20,
+     "e",
+     "Opciones T&C",
+     "Comparador T&C"
+    ],
+    [
+     35,
+     "e",
+     "T&C créditos T3",
+     "Comparador T&C"
+    ],
+    [
+     55,
+     "e",
+     "Recordatorio largo T1",
+     "Gracias ASNEF"
+    ],
+    [
+     90,
+     "s",
+     "SMS reactivación",
+     "Gracias ASNEF"
+    ],
+    [
+     120,
+     "e",
+     "Recordatorio largo T2",
+     "Gracias ASNEF"
+    ],
+    [
+     160,
+     "s",
+     "SMS reactivación",
+     "Gracias ASNEF"
+    ],
+    [
+     180,
+     "e",
+     "Último aviso y baja suave",
+     "Preferencias"
+    ]
+   ]
+  },
+  "hq": {
+   "label": "Lead de alta calidad (Gracias triple)",
+   "desc": "Ingresos > 1.000 €, 22 a 65 años, contrato fijo > 180 d, sin ASNEF, consumo 100 a 5.000 €, solo España.",
+   "re": 0.03,
+   "rs": 0.045,
+   "tau": 8,
+   "V": 22,
+   "L0": 18,
+   "sched": [
+    [
+     0.01,
+     "s",
+     "SMS: ofertas preaprobadas",
+     "Gracias triple"
+    ],
+    [
+     0.04,
+     "e",
+     "Gracias triple (1 h tras solicitar)",
+     "Gracias triple"
+    ],
+    [
+     0.12,
+     "s",
+     "SMS: elige tu oferta",
+     "Gracias triple"
+    ],
+    [
+     0.25,
+     "e",
+     "Ofertas HQ",
+     "Gracias triple"
+    ],
+    [
+     0.5,
+     "s",
+     "SMS: oferta reservada",
+     "Gracias triple"
+    ],
+    [
+     1,
+     "e",
+     "Recordatorio 1 d",
+     "Gracias triple"
+    ],
+    [
+     2,
+     "s",
+     "SMS recordatorio",
+     "Gracias triple"
+    ],
+    [
+     3,
+     "e",
+     "Recordatorio 3 d",
+     "Gracias triple"
+    ],
+    [
+     5,
+     "s",
+     "SMS recordatorio",
+     "Gracias triple"
+    ],
+    [
+     7,
+     "e",
+     "Recordatorio 7 d",
+     "Gracias triple"
+    ],
+    [
+     12,
+     "s",
+     "SMS recordatorio",
+     "Gracias triple"
+    ],
+    [
+     20,
+     "e",
+     "Ofertas actualizadas",
+     "Gracias triple"
+    ],
+    [
+     35,
+     "e",
+     "Ofertas T&C",
+     "Comparador T&C"
+    ],
+    [
+     55,
+     "e",
+     "Recordatorio largo T1",
+     "Continuar"
+    ],
+    [
+     85,
+     "s",
+     "SMS reactivación",
+     "Continuar"
+    ],
+    [
+     110,
+     "e",
+     "Recordatorio largo T2",
+     "Continuar"
+    ],
+    [
+     145,
+     "s",
+     "SMS reactivación",
+     "Continuar"
+    ],
+    [
+     180,
+     "e",
+     "Último aviso y baja suave",
+     "Preferencias"
+    ]
+   ]
+  },
+  "cold": {
+   "label": "Base fría (leads antiguos)",
+   "desc": "Lista inactiva que se reactiva sin limpiarla («do not clean»). Entrada con ráfaga el primer día y frecuencia baja después.",
+   "re": 0.004,
+   "rs": 0.006,
+   "tau": 60,
+   "V": 10,
+   "L0": 1,
+   "sched": [
+    [
+     0.04,
+     "e",
+     "Te echamos de menos",
+     "Continuar"
+    ],
+    [
+     0.2,
+     "s",
+     "SMS: tu oferta te espera",
+     "Continuar"
+    ],
+    [
+     0.5,
+     "e",
+     "Novedades y condiciones",
+     "Continuar con importe"
+    ],
+    [
+     1,
+     "s",
+     "SMS recordatorio",
+     "Continuar"
+    ],
+    [
+     2,
+     "e",
+     "Reminder 2 d",
+     "Continuar"
+    ],
+    [
+     4,
+     "s",
+     "SMS recordatorio",
+     "Continuar"
+    ],
+    [
+     7,
+     "e",
+     "Reminder 7 d",
+     "Continuar"
+    ],
+    [
+     14,
+     "s",
+     "SMS recordatorio",
+     "Continuar"
+    ],
+    [
+     21,
+     "e",
+     "Reminder 21 d",
+     "Continuar"
+    ],
+    [
+     30,
+     "e",
+     "Reminder 30 d",
+     "Continuar"
+    ],
+    [
+     45,
+     "s",
+     "SMS reactivación",
+     "Continuar"
+    ],
+    [
+     60,
+     "e",
+     "Reminder 60 d",
+     "Continuar"
+    ],
+    [
+     90,
+     "s",
+     "SMS reactivación",
+     "Continuar"
+    ],
+    [
+     120,
+     "e",
+     "Reminder 120 d",
+     "Continuar"
+    ],
+    [
+     150,
+     "s",
+     "SMS reactivación",
+     "Continuar"
+    ],
+    [
+     180,
+     "e",
+     "Último aviso y baja suave",
+     "Preferencias"
+    ]
+   ]
+  }
+ },
+ "mods": {
+  "tp": {
+   "label": "Trustpilot (valor de conversión > 20 € en 30 d)",
+   "touch": [
+    1.1,
+    "e",
+    "Reseña Trustpilot (1 d tras la venta)",
+    "Mail informativo Trustpilot",
+    0
+   ]
+  },
+  "life": {
+   "label": "Seguro de vida (interés declarado)",
+   "touch": [
+    3.2,
+    "e",
+    "Seguro de vida (Life event)",
+    "Redirección vida",
+    0.5
+   ]
+  }
+ }
+}

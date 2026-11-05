@@ -1,0 +1,448 @@
+<title>Remarketing Planner</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+/* Mismo sistema visual que Pingtree Forecast y Media Buying Advisor. */
+:root{
+  --bg:#0f1117; --bg2:#161b25; --bg3:#1d2433; --border:rgba(255,255,255,.07); --border2:rgba(255,255,255,.13);
+  --text:#e8eaf0; --text2:#8b92a8; --text3:#6d7692; --accent:#4f8ef7; --accent2:#3a6fd4; --accent-soft:rgba(79,142,247,.12);
+  --green:#2ecc8a; --green-bg:rgba(46,204,138,.1); --amber:#f5a623; --amber-bg:rgba(245,166,35,.1); --red:#f75959; --red-bg:rgba(247,89,89,.1);
+  --grid:rgba(255,255,255,.07);
+  --c1:#4f8ef7; --c2:#2ecc8a; --c3:#f5a623; --c4:#a78bfa; --c5:#2dd4bf; --c6:#f472b6; --c7:#f75959; --c8:#8b92a8;
+  --f-sans:'DM Sans',system-ui,-apple-system,'Segoe UI',sans-serif; --f-mono:'DM Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --bg:#f2f4f8; --bg2:#ffffff; --bg3:#eceff6; --border:rgba(20,30,60,.09); --border2:rgba(20,30,60,.17);
+    --text:#161b2a; --text2:#566079; --text3:#6d7690; --accent:#2f6fe0; --accent2:#2a5fc4; --accent-soft:rgba(47,111,224,.1);
+    --green:#12905a; --green-bg:rgba(18,144,90,.09); --amber:#a8670a; --amber-bg:rgba(168,103,10,.1); --red:#c8372f; --red-bg:rgba(200,55,47,.09);
+    --grid:rgba(20,30,60,.08);
+    --c1:#2f6fe0; --c2:#12905a; --c3:#c47d0c; --c4:#7c5ce0; --c5:#0f9e8f; --c6:#d4467f; --c7:#c8372f; --c8:#6d7690; color-scheme:light;
+  }
+}
+:root[data-theme="light"]{
+  --bg:#f2f4f8; --bg2:#ffffff; --bg3:#eceff6; --border:rgba(20,30,60,.09); --border2:rgba(20,30,60,.17);
+  --text:#161b2a; --text2:#566079; --text3:#6d7690; --accent:#2f6fe0; --accent2:#2a5fc4; --accent-soft:rgba(47,111,224,.1);
+  --green:#12905a; --green-bg:rgba(18,144,90,.09); --amber:#a8670a; --amber-bg:rgba(168,103,10,.1); --red:#c8372f; --red-bg:rgba(200,55,47,.09);
+  --grid:rgba(20,30,60,.08);
+  --c1:#2f6fe0; --c2:#12905a; --c3:#c47d0c; --c4:#7c5ce0; --c5:#0f9e8f; --c6:#d4467f; --c7:#c8372f; --c8:#6d7690; color-scheme:light;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--f-sans);font-size:14px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:20;background:var(--bg2)}
+h1,h2,h3,h4,p{margin:0}
+.wrap{max-width:1400px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.top{background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:env(safe-area-inset-top,0px);z-index:15}
+.top .wrap{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;justify-content:space-between;padding-block:14px}
+.top h1{font-size:18px;font-weight:600;letter-spacing:-.3px}
+.top p{font-size:12px;color:var(--text2);margin-top:2px}
+.anchors{display:flex;gap:4px;overflow-x:auto}
+.anchors a{color:var(--text2);text-decoration:none;font-size:13px;font-weight:500;padding:6px 11px;border-radius:6px;white-space:nowrap}
+.anchors a:hover{background:var(--bg3);color:var(--text)}
+main .wrap{padding-block:22px 60px;display:flex;flex-direction:column;gap:20px}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:18px;min-width:0}
+.card h3{font-size:14px;font-weight:600;margin-bottom:3px}
+.card .hint{font-size:12px;color:var(--text2);margin-bottom:12px;max-width:80ch}
+.sec-title{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);margin-bottom:-8px}
+.brief{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:16px 20px;align-items:end}
+.f{display:flex;flex-direction:column;gap:5px;min-width:0}
+.f>label,.lbl{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px}
+input[type=text],input[type=number],select,textarea{font:500 13px var(--f-sans);color:var(--text);background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:8px 10px;width:100%;min-width:0}
+textarea{font-weight:400;resize:vertical;min-height:64px}
+input[type=range]{accent-color:var(--accent);width:100%;min-width:0}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.rng{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center}
+.rng output{font:500 12px var(--f-mono);color:var(--accent)}
+.rng input{grid-column:1/-1}
+.pill{appearance:none;font:500 12.5px var(--f-sans);color:var(--text2);background:var(--bg3);border:1px solid var(--border2);border-radius:999px;padding:7px 13px;cursor:pointer}
+.pill:hover{border-color:var(--accent);color:var(--text)}
+.pill[aria-pressed="true"]{background:var(--accent2);border-color:var(--accent2);color:#fff}
+.pills{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.assump{margin-top:14px;padding:10px 12px;border:1px dashed var(--border2);border-radius:8px;background:var(--amber-bg);color:var(--text);font-size:12.5px}
+.assump b{color:var(--amber)}
+.strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.scard{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;min-width:0}
+.scard .l{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.scard .v{font:600 22px var(--f-mono);letter-spacing:-.5px;overflow-wrap:anywhere}
+.scard .s{font-size:11.5px;color:var(--text3);margin-top:3px}
+.scard.main{border-color:var(--accent2);background:linear-gradient(0deg,var(--accent-soft),var(--accent-soft)),var(--bg2)}
+.good{color:var(--green)} .mid{color:var(--amber)} .bad{color:var(--red)}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th{font-size:10.5px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;font-weight:500;text-align:right;padding:6px 10px;white-space:nowrap;border-bottom:1px solid var(--border2)}
+td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:right;font:500 12.5px var(--f-mono);white-space:nowrap;vertical-align:middle}
+th.tl,td.tl{text-align:left}
+td.name{font:500 13px var(--f-sans);white-space:normal;min-width:190px}
+.ch{display:inline-block;font:600 10.5px var(--f-sans);border-radius:4px;padding:1px 7px}
+.ch.e{background:var(--accent-soft);color:var(--accent)} .ch.s{background:var(--green-bg);color:var(--green)}
+.tag{font-size:10px;font-family:var(--f-sans);color:var(--amber);background:var(--amber-bg);border:1px solid rgba(245,166,35,.25);border-radius:3px;padding:0 5px;margin-left:5px;white-space:nowrap}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:16px}
+.cbox{position:relative;height:300px;min-width:0}
+.kv{display:flex;flex-wrap:wrap;gap:6px 22px;font-size:12.5px;color:var(--text2);margin-top:10px}
+.kv b{font:500 12.5px var(--f-mono);color:var(--text)}
+.insight{margin-top:10px;font-size:12.5px;color:var(--text2);border-left:2px solid var(--accent2);padding-left:10px}
+.tl-svg{width:100%;min-width:760px;height:auto;display:block}
+.tl-svg text{font-family:var(--f-sans);fill:var(--text2);font-size:11px}
+.tl-svg .lane{fill:var(--bg3)}
+.tl-svg .ax{stroke:var(--border2)}
+.tl-svg .seg{fill:var(--accent-soft)}
+.tl-svg .dote{fill:var(--accent);stroke:var(--bg2);stroke-width:1.5}
+.tl-svg .dots{fill:var(--green);stroke:var(--bg2);stroke-width:1.5}
+.tl-svg .hot{fill:var(--amber-bg);stroke:var(--amber);stroke-dasharray:4 3}
+.tl-svg .lbl2{fill:var(--text);font-weight:600}
+.funnel{display:flex;flex-direction:column;gap:6px}
+.fs{display:grid;grid-template-columns:minmax(120px,190px) 1fr minmax(120px,170px);gap:10px;align-items:center}
+.fs .n{font-size:12.5px;font-weight:600}
+.fs .n small{display:block;font-weight:400;color:var(--text3);font-size:11px}
+.fs .bar{height:26px;border-radius:5px;background:var(--bg3);position:relative;overflow:hidden}
+.fs .bar i{position:absolute;inset:0 auto 0 0;background:var(--accent2);opacity:.85;border-radius:5px}
+.fs .bar b{position:absolute;left:10px;top:3px;font:500 12px var(--f-mono);color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.4)}
+.fs .rm{font-size:11.5px;color:var(--text2)}
+.fs .rm .on{color:var(--amber);font-weight:600}
+.fs.sel .bar i{background:var(--amber)}
+.fs.out .bar i{background:var(--c8)}
+.fs.miss .n::after{content:" · evento ausente";color:var(--red);font-weight:500;font-size:11px}
+.foot{font-size:12px;color:var(--text3);max-width:100ch}
+.pb{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:12px}
+.pcard{border:1px solid var(--border);border-radius:8px;padding:12px 14px;background:var(--bg3)}
+.pcard h4{font-size:13px;margin-bottom:4px}
+.pcard p{font-size:12.5px;color:var(--text2)}
+.chk{accent-color:var(--accent);width:16px;height:16px}
+.mods{display:flex;flex-wrap:wrap;gap:14px;margin-top:14px;font-size:13px}
+.mods label{display:flex;gap:7px;align-items:center;cursor:pointer}
+@media (max-width:640px){ .scard .v{font-size:19px} .fs{grid-template-columns:1fr} }
+</style>
+
+<header class="top"><div class="wrap">
+  <div><h1>Remarketing Planner</h1><p>Calendario de 6 meses de email y SMS para aumentar el LTV del lead · basado en el funnel de eventos F24</p></div>
+  <nav class="anchors" aria-label="Secciones"><a href="#brief">Brief</a><a href="#timeline">Calendario</a><a href="#analytics">Analítica</a><a href="#traffic">Tráfico</a><a href="#funnel">Funnel</a><a href="#notes">Método</a></nav>
+</div></header>
+
+<main><div class="wrap">
+
+<section class="card" id="brief">
+  <h3>Brief de la campaña</h3>
+  <p class="hint">Cuenta qué campaña de remarketing quieres hacer o elige el segmento. La página arma un calendario de hasta 6 meses con mucha intensidad en las primeras 24 horas y cada vez más espaciado, hasta que el lead se da por muerto en el día 180.</p>
+  <div class="brief">
+    <div class="f"><label for="f-company">Empresa</label><input id="f-company" type="text" placeholder="Nombre de la empresa"></div>
+    <div class="f" style="grid-column:span 2"><label for="f-goal">Qué campaña quieres hacer</label><textarea id="f-goal" placeholder="Ej. Reactivar leads que rellenaron la solicitud pero no continuaron"></textarea></div>
+    <div class="f"><label for="f-type">Segmento</label><select id="f-type"></select></div>
+    <div class="f"><label for="f-leads">Leads en la cohorte</label><input id="f-leads" type="number" min="100" step="1000" value="10000"></div>
+    <div class="f"><label for="f-v">Valor por conversión (€)</label><input id="f-v" type="number" min="0" step="0.5"></div>
+    <div class="f"><label for="f-l0">LTV actual por lead (€)</label><input id="f-l0" type="number" min="0" step="0.5"></div>
+    <div class="f"><label for="f-ce">Coste por email (€)</label><input id="f-ce" type="number" min="0" step="0.001" value="0.003"></div>
+    <div class="f"><label for="f-cs">Coste por SMS (€)</label><input id="f-cs" type="number" min="0" step="0.005" value="0.05"></div>
+    <div class="f"><label for="f-kr">Respuesta respecto a la base</label><div class="rng"><span></span><output id="o-kr">×1,00</output><input id="f-kr" type="range" min="0.4" max="2" step="0.05" value="1"></div></div>
+    <div class="f"><label for="f-inc">Incrementalidad</label><div class="rng"><span></span><output id="o-inc">70 %</output><input id="f-inc" type="range" min="30" max="100" step="5" value="70"></div></div>
+  </div>
+  <div class="mods" id="mods"></div>
+  <div class="assump"><b>Hipótesis editables.</b> La respuesta por envío, la caída con el tiempo, el valor por conversión y el LTV de partida son supuestos del modelo por segmento, no datos medidos. Sustitúyelos por tus métricas reales al lanzar. «Incrementalidad» es la parte de las conversiones que no habría ocurrido sin el envío.</div>
+</section>
+
+<div id="kpis" class="strip" aria-live="polite"></div>
+
+<section class="card" id="timeline">
+  <h3 id="tl-title">Calendario</h3>
+  <p class="hint">Eje con escala variable para ver bien las primeras 24 horas. El recuadro naranja marca la ventana de máxima intensidad.</p>
+  <div class="scroll"><svg id="tl" class="tl-svg" viewBox="0 0 1200 250" role="img" aria-label="Calendario de envíos de email y SMS"></svg></div>
+  <div class="insight" id="in-tl"></div>
+  <div class="scroll" style="margin-top:14px"><table id="tl-table"></table></div>
+</section>
+
+<div class="sec-title" id="analytics">Analítica del calendario</div>
+<div class="grid2">
+  <div class="card"><h3>Envíos por tramo de tiempo</h3><p class="hint">Cuántos envíos recibe cada lead en cada tramo y su intensidad diaria.</p><div class="cbox"><canvas id="chBuck"></canvas></div><div class="insight" id="in-buck"></div></div>
+  <div class="card"><h3>Leads activos y bajas</h3><p class="hint">Porcentaje de la cohorte que sigue recibiendo envíos, que ha convertido o que se ha dado de baja.</p><div class="cbox"><canvas id="chAlive"></canvas></div><div class="insight" id="in-alive"></div></div>
+  <div class="card"><h3>Revenue acumulado frente a coste</h3><p class="hint">Revenue incremental y coste de envío acumulados a lo largo de los 180 días.</p><div class="cbox"><canvas id="chCum"></canvas></div><div class="insight" id="in-cum"></div></div>
+  <div class="card"><h3>Conversiones por envío</h3><p class="hint">Cada barra es un envío del calendario. Muestra el rendimiento decreciente.</p><div class="cbox"><canvas id="chTouch"></canvas></div></div>
+  <div class="card"><h3>Cuándo llega el revenue</h3><p class="hint">Porcentaje del revenue incremental por horizonte desde el inicio del flujo.</p><div class="cbox"><canvas id="chHor"></canvas></div></div>
+  <div class="card"><h3>Email frente a SMS</h3><p class="hint">Retorno de cada canal con tus costes.</p><div class="cbox"><canvas id="chChan"></canvas></div><div class="kv" id="kv-chan"></div></div>
+  <div class="card"><h3>Estrategia diseñada frente a alternativas</h3><p class="hint">Beneficio neto de la cohorte con tres calendarios: el tuyo, un email semanal constante y un ritmo agresivo de envíos diarios.</p><div class="cbox"><canvas id="chStrat"></canvas></div><div class="insight" id="in-strat"></div></div>
+  <div class="card"><h3>Sensibilidad del beneficio neto</h3><p class="hint">Qué hipótesis mueve más el resultado (±25 %).</p><div class="cbox"><canvas id="chTor"></canvas></div></div>
+</div>
+
+<section class="card" id="traffic">
+  <h3>Análisis de tráfico generado</h3>
+  <p class="hint">Visitas que el flujo lleva a tus landings. Se estima con un CTR del 3,5 % por email y del 9 % por SMS, ajustado a la baja con el tiempo.</p>
+  <div class="grid2">
+    <div><div class="cbox"><canvas id="chTrafP"></canvas></div></div>
+    <div><div class="cbox"><canvas id="chTrafL"></canvas></div></div>
+  </div>
+  <div class="scroll" style="margin-top:14px"><table id="traf-table"></table></div>
+</section>
+
+<section class="card" id="funnel">
+  <h3>Funnel completo y puntos de entrada</h3>
+  <p class="hint">Recorrido de captación de la pizarra: visita, alta en dos pasos, solicitud enviada y decisión de lenders. Cada puerta de entrada al remarketing aparece con el tamaño del grupo que recibe el flujo. Los porcentajes son hipótesis editables.</p>
+  <div class="brief" style="margin-bottom:16px">
+    <div class="f"><label for="g-vis">Visitas al mes</label><input id="g-vis" type="number" min="1000" step="10000" value="200000"></div>
+    <div class="f"><label for="g-s1">Inician el alta (%)</label><input id="g-s1" type="number" min="1" max="100" step="1" value="30"></div>
+    <div class="f"><label for="g-s2">Paso 1 a paso 2 (%)</label><input id="g-s2" type="number" min="1" max="100" step="1" value="60"></div>
+    <div class="f"><label for="g-ap">Paso 2 a solicitud (%)</label><input id="g-ap" type="number" min="1" max="100" step="1" value="70"></div>
+    <div class="f"><label for="g-ac">Aceptados por algún lender (%)</label><input id="g-ac" type="number" min="1" max="100" step="1" value="45"></div>
+    <div class="f"><label for="g-cold">Base fría reactivable</label><input id="g-cold" type="number" min="0" step="10000" value="150000"></div>
+  </div>
+  <div class="funnel" id="funnel-vis"></div>
+  <div class="grid2" style="margin-top:18px">
+    <div><h3>Cartera de segmentos</h3><p class="hint">Beneficio neto mensual de cada flujo con el tamaño de grupo del funnel.</p><div class="cbox"><canvas id="chPort"></canvas></div></div>
+    <div class="scroll"><table id="port-table"></table></div>
+  </div>
+  <div class="insight" id="in-port"></div>
+</section>
+
+<section class="card">
+  <h3>Qué recoge la pizarra y qué falta</h3>
+  <div class="pb" id="audit"></div>
+</section>
+
+<section class="card" id="notes">
+  <h3>Método y límites</h3>
+  <div class="kv" style="display:block;line-height:1.7">
+    <p><b>Modelo de respuesta:</b> cada envío convierte una fracción de los leads que siguen activos: respuesta base del canal × decaimiento temporal (exponencial con un mínimo del 12 %) ÷ fatiga (1 + 0,3 × envíos de las últimas 48 horas). Los que convierten dejan de recibir envíos.</p>
+    <p><b>Bajas:</b> 0,4 % por email y 0,9 % por SMS, multiplicadas por (1 + 0,6 × envíos de las últimas 48 horas). El lead se da por muerto en el día 180.</p>
+    <p><b>Valor:</b> revenue incremental = conversiones × valor por conversión × incrementalidad. Beneficio neto = revenue incremental − coste de envíos. LTV nuevo = LTV actual + beneficio neto ÷ leads.</p>
+    <p><b>Origen del calendario:</b> los tiempos T1 a T6, los recordatorios largos, los módulos ASNEF, HQ, Trustpilot y seguros de vida y las landings salen de la pizarra «EVENTS F24». Los recordatorios largos de 55 a 450 días se han comprimido para morir en el día 180, como pediste.</p>
+    <p><b>Límite principal:</b> todos los parámetros de respuesta son hipótesis. El calendario es una propuesta de partida que debe validarse con tests A/B.</p>
+    <p><b>Cumplimiento:</b> el SMS y el email comerciales requieren consentimiento y baja sencilla. Evita enviar de noche y revisa el RGPD y la LSSI en España.</p>
+  </div>
+</section>
+
+</div></main>
+
+<script>
+const PARAMS = __PARAMS__;
+/* ------------------------------------------------ formato */
+const nfx = d => { try { return new Intl.NumberFormat('es-ES',{minimumFractionDigits:d,maximumFractionDigits:d,useGrouping:'always'}); } catch(e){ return new Intl.NumberFormat('es-ES',{minimumFractionDigits:d,maximumFractionDigits:d}); } };
+const N0=nfx(0), N1=nfx(1), N2=nfx(2);
+const int = v => N0.format(Math.round(v));
+const eur = v => N0.format(Math.round(v)) + ' €';
+const eur2 = v => N2.format(v) + ' €';
+const sgn = v => (v>=0?'+':'−') + N0.format(Math.abs(Math.round(v))) + ' €';
+const pct1 = v => N1.format(v*100) + ' %';
+const $ = (s, r=document) => r.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const short = (s, n=16) => s.length > n ? s.slice(0, n-1) + '…' : s;
+function when(d){ if(d<1/24*1.5){ const m=Math.round(d*1440); return m<60?m+' min':'1 h'; } if(d<1){ return N0.format(Math.round(d*24))+' h'; } return N0.format(Math.round(d))+' d'; }
+
+/* ------------------------------------------------ datos */
+const TYPES = PARAMS.types;
+const MODS = PARAMS.mods;
+const KW = [[/abandon|primer paso|no (termin|acab|complet)|incomplet|first/i,'first'],[/rechaz|ning[uú]n lender|todos los lenders|no aprob|denegad/i,'fail'],[/asnef|moros|deuda|impag/i,'asnef'],[/alta calidad|hq|premium|buen perfil|n[oó]mina alta/i,'hq'],[/fr[ií]a|antigu|reactiv|inactiv|dormid|base vieja/i,'cold'],[/solicitud|bienvenida|welcome|aplicad|applied|reci[eé]n/i,'applied']];
+
+/*CALC*/
+const DEF=PARAMS.defaults;
+function simulate(P, sched){
+  const ts=sched.slice().sort((a,b)=>a[0]-b[0]); let alive=1; const rows=[];
+  ts.forEach((x,i)=>{
+    const t=x[0], ch=x[1]; let n48=0; for(let j=0;j<i;j++) if(t-ts[j][0]<=2) n48++;
+    const w=P.floor+(1-P.floor)*Math.exp(-t/P.tau), f=1/(1+P.fat*n48), m=x[4]!=null?x[4]:1;
+    const r=(ch==='e'?P.re:P.rs)*P.kR*m;
+    const conv=Math.min(alive,alive*r*w*f);
+    const un=Math.min(alive-conv,alive*(ch==='e'?P.ue:P.us)*(1+P.ufat*n48));
+    const clicks=alive*(ch==='e'?P.ctrE:P.ctrS)*(0.4+0.6*w);
+    const cost=alive*(ch==='e'?P.ce:P.cs);
+    rows.push({t,ch,name:x[2],dest:x[3],aliveIn:alive,conv,un,clicks,cost,rev:conv*P.V*P.inc,aliveOut:alive-conv-un});
+    alive=alive-conv-un;
+  });
+  return rows;
+}
+function summarize(rows,N){
+  const s={sends:0,sendsE:0,sendsS:0,conv:0,rev:0,cost:0,costE:0,costS:0,revE:0,revS:0,un:0,clicks:0};
+  rows.forEach(r=>{ s.sends+=r.aliveIn; if(r.ch==='e'){s.sendsE+=r.aliveIn;s.costE+=r.cost;s.revE+=r.rev;}else{s.sendsS+=r.aliveIn;s.costS+=r.cost;s.revS+=r.rev;}
+    s.conv+=r.conv; s.rev+=r.rev; s.cost+=r.cost; s.un+=r.un; s.clicks+=r.clicks; });
+  const o={};
+  for(const k of Object.keys(s)) o[k]=s[k]*N;
+  o.net=o.rev-o.cost; o.roi=o.cost?o.net/o.cost:0; o.aliveEnd=rows.length?rows[rows.length-1].aliveOut:1; o.touches=rows.length;
+  return o;
+}
+function revShare(rows,days){ const tot=rows.reduce((s,r)=>s+r.rev,0); return tot?rows.filter(r=>r.t<=days).reduce((s,r)=>s+r.rev,0)/tot:0; }
+function flatSched(){ const a=[]; for(let d=7;d<=175;d+=7) a.push([d,'e','Email semanal','Continuar']); return a; }
+function aggSched(){ const a=[[.04,'e','x','Continuar'],[.2,'s','x','Continuar']]; for(let d=1;d<=30;d++){ a.push([d,'e','x','Continuar']); if(d%2===0) a.push([d+.3,'s','x','Continuar']); } for(let d=37;d<=175;d+=7) a.push([d,'e','x','Continuar']); return a; }
+function pools(g){
+  const s1=g.vis*g.s1, s2=s1*g.s2, ap=s2*g.ap;
+  return {vis:g.vis,s1,s2,ap,first:s1-ap, acc:ap*g.ac, fail:ap*(1-g.ac), asnef:ap*0.35*(1-g.ac)+ap*0.05, hq:ap*0.12, cold:g.cold, applied:ap};
+}
+/*ENDCALC*/
+
+/* ------------------------------------------------ estado */
+const S = {company:'',goal:'',type:'applied',N:PARAMS.cohort,V:TYPES.applied.V,L0:TYPES.applied.L0,ce:PARAMS.cost_email,cs:PARAMS.cost_sms,kR:PARAMS.response_multiplier,inc:PARAMS.incrementality,mods:new Set(),g:{...PARAMS.funnel}};
+function applyType(k){ const t=TYPES[k]; S.type=k; S.V=t.V; S.L0=t.L0; $('#f-type').value=k; $('#f-v').value=t.V; $('#f-l0').value=t.L0; }
+const paramsOf = (k=S.type) => { const t=TYPES[k]; return {...DEF,re:t.re,rs:t.rs,tau:t.tau,V:k===S.type?S.V:t.V,kR:S.kR,inc:S.inc,ce:S.ce,cs:S.cs}; };
+const schedOf = (k=S.type) => { const a=TYPES[k].sched.map(x=>x.slice()); if(k===S.type) S.mods.forEach(m=>a.push(MODS[m].touch.slice())); return a; };
+
+/* ------------------------------------------------ gráficos */
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const charts = {};
+const pal = () => [1,2,3,4,5,6,7,8].map(i=>css('--c'+i));
+function mk(id,cfg){
+  const el=document.getElementById(id); if(!el||typeof Chart==='undefined') return;
+  if(charts[id]) charts[id].destroy();
+  cfg.options=cfg.options||{}; cfg.options.responsive=true; cfg.options.maintainAspectRatio=false; cfg.options.animation=false;
+  charts[id]=new Chart(el,cfg);
+}
+function chartDefaults(){
+  if(typeof Chart==='undefined') return;
+  Chart.defaults.color=css('--text2'); Chart.defaults.borderColor=css('--grid');
+  Chart.defaults.font.family=css('--f-sans'); Chart.defaults.font.size=11;
+  Chart.defaults.plugins.legend.labels.boxWidth=10; Chart.defaults.plugins.legend.labels.boxHeight=10;
+}
+const gridY = () => ({grid:{color:css('--grid')},border:{display:false}});
+const gridX = () => ({grid:{display:false}});
+const BUCK=[[.25,'0–6 h'],[1,'6–24 h'],[3,'1–3 d'],[7,'3–7 d'],[14,'7–14 d'],[30,'14–30 d'],[60,'30–60 d'],[90,'60–90 d'],[180,'90–180 d']];
+const bucketOf=t=>{ for(let i=0;i<BUCK.length;i++) if(t<=BUCK[i][0]) return i; return BUCK.length-1; };
+
+/* eje con escala variable: 0–1 d, 1–7 d, 7–30 d, 30–180 d */
+const SEGS=[[0,1,60,420],[1,7,420,680],[7,30,680,900],[30,180,900,1150]];
+function xOf(t){ for(const [a,b,x0,x1] of SEGS) if(t<=b) return x0+(x1-x0)*(Math.max(t,a)-a)/(b-a); return 1150; }
+
+function render(){
+  chartDefaults(); const P=pal();
+  const T=TYPES[S.type], par=paramsOf(), sched=schedOf(), rows=simulate(par,sched), sum=summarize(rows,S.N);
+  const company=S.company.trim()||'tu empresa';
+  const ltvNew=S.L0+(S.N?sum.net/S.N:0);
+
+  /* KPIs */
+  $('#kpis').innerHTML=
+    `<div class="scard main"><div class="l">LTV por lead</div><div class="v">${eur2(ltvNew)}</div><div class="s">antes ${eur2(S.L0)} · ${sum.net>=0?'+':'−'}${eur2(Math.abs(sum.net/S.N))} por lead</div></div>`+
+    `<div class="scard"><div class="l">Beneficio neto</div><div class="v ${sum.net>=0?'good':'bad'}">${sgn(sum.net)}</div><div class="s">revenue ${eur(sum.rev)} − coste ${eur(sum.cost)}</div></div>`+
+    `<div class="scard"><div class="l">ROI de los envíos</div><div class="v">${N1.format(sum.roi)}×</div><div class="s">neto ÷ coste</div></div>`+
+    `<div class="scard"><div class="l">Conversiones</div><div class="v">${int(sum.conv)}</div><div class="s">${pct1(S.N?sum.conv/S.N:0)} de la cohorte</div></div>`+
+    `<div class="scard"><div class="l">Revenue en 24 h / 7 d</div><div class="v">${pct1(revShare(rows,1))} / ${pct1(revShare(rows,7))}</div><div class="s">del total incremental</div></div>`+
+    `<div class="scard"><div class="l">Envíos por lead</div><div class="v">${rows.length}</div><div class="s">${rows.filter(r=>r.ch==='e').length} emails · ${rows.filter(r=>r.ch==='s').length} SMS</div></div>`+
+    `<div class="scard"><div class="l">Bajas</div><div class="v ${sum.un/S.N>.15?'bad':''}">${pct1(S.N?sum.un/S.N:0)}</div><div class="s">activos al final: ${pct1(sum.aliveEnd)}</div></div>`;
+
+  /* timeline SVG */
+  const mx=Math.max(...rows.map(r=>r.t),1);
+  let sv=`<rect class="hot" x="${xOf(0)-4}" y="22" width="${xOf(1)-xOf(0)+8}" height="176" rx="6"/><text x="${xOf(0)+4}" y="16" class="lbl2">Primeras 24 h: ${rows.filter(r=>r.t<=1).length} envíos</text>`;
+  [[0,'Email',58],[1,'SMS',138]].forEach(([i,n,y])=>{ sv+=`<rect class="lane" x="60" y="${y}" width="1090" height="44" rx="6"/><text x="8" y="${y+26}">${n}</text>`; });
+  sv+=`<line class="ax" x1="60" x2="1150" y1="212" y2="212"/>`;
+  [[0,'0'],[.25,'6 h'],[.5,'12 h'],[1,'24 h'],[3,'3 d'],[7,'7 d'],[14,'14 d'],[30,'30 d'],[60,'60 d'],[90,'90 d'],[120,'120 d'],[150,'150 d'],[180,'180 d']].forEach(([t,l])=>{ sv+=`<line class="ax" x1="${xOf(t)}" x2="${xOf(t)}" y1="206" y2="218"/><text x="${xOf(t)}" y="234" text-anchor="middle">${l}</text>`; });
+  rows.forEach(r=>{ const y=r.ch==='e'?80:160, rad=4+Math.min(8,r.conv/(rows[0]?rows[0].conv||1:1)*5);
+    sv+=`<circle class="dot${r.ch}" cx="${xOf(r.t)}" cy="${y}" r="${rad.toFixed(1)}"><title>${esc(when(r.t))} · ${r.ch==='e'?'Email':'SMS'} · ${esc(r.name)}</title></circle>`; });
+  sv+=`<text x="1150" y="16" text-anchor="end">Muerte del lead en el día 180</text>`;
+  $('#tl').innerHTML=sv;
+  $('#tl-title').textContent=`Calendario de ${company} · ${T.label}`;
+  const first24=rows.filter(r=>r.t<=1).length, last90=rows.filter(r=>r.t>90).length;
+  $('#in-tl').textContent=`${T.desc} El ${pct1(first24/rows.length)} de los envíos cae en las primeras 24 horas y solo ${last90} pasan del día 90.`;
+  let tt='<thead><tr><th class="tl">Cuándo</th><th class="tl">Canal</th><th class="tl">Mensaje</th><th class="tl">Destino</th><th>Activos</th><th>Conv. por lead</th><th>Bajas por lead</th></tr></thead><tbody>';
+  rows.forEach(r=>{ tt+=`<tr><td class="tl">${when(r.t)}</td><td class="tl"><span class="ch ${r.ch}">${r.ch==='e'?'Email':'SMS'}</span></td><td class="tl name">${esc(r.name)}</td><td class="tl">${esc(r.dest)}</td><td>${pct1(r.aliveIn)}</td><td>${N2.format(r.conv*100)} %</td><td>${N2.format(r.un*100)} %</td></tr>`; });
+  $('#tl-table').innerHTML=tt+'</tbody>';
+
+  /* tramos */
+  const bk=BUCK.map(()=>({e:0,s:0})); rows.forEach(r=>{ bk[bucketOf(r.t)][r.ch]++; });
+  const span=BUCK.map((b,i)=>b[0]-(i?BUCK[i-1][0]:0));
+  mk('chBuck',{type:'bar',data:{labels:BUCK.map(b=>b[1]),datasets:[{type:'bar',label:'Emails',data:bk.map(x=>x.e),backgroundColor:P[0],stack:'a',borderRadius:2,yAxisID:'y'},{type:'bar',label:'SMS',data:bk.map(x=>x.s),backgroundColor:P[1],stack:'a',borderRadius:2,yAxisID:'y'},{type:'line',label:'Envíos por día',data:bk.map((x,i)=>(x.e+x.s)/span[i]),borderColor:P[2],backgroundColor:P[2],yAxisID:'y1',pointRadius:3,tension:.2}]},
+    options:{plugins:{tooltip:{callbacks:{label:c=>c.dataset.label+': '+N1.format(c.parsed.y)}}},scales:{x:{...gridX(),stacked:true},y:{...gridY(),stacked:true,beginAtZero:true,ticks:{precision:0}},y1:{position:'right',grid:{display:false},type:'logarithmic',ticks:{callback:v=>[.01,.1,1,10,100].includes(v)?v:''}}}}});
+  const d1=(bk[0].e+bk[0].s+bk[1].e+bk[1].s)/1;
+  $('#in-buck').textContent=`${d1} envíos en las primeras 24 horas (unos ${N1.format(d1)} al día) y menos de 1 envío cada 10 días pasado el día 90.`;
+
+  /* activos */
+  const pts=[{t:0,a:1,c:0,u:0}]; let cc=0, uu=0; rows.forEach(r=>{ cc+=r.conv; uu+=r.un; pts.push({t:r.t,a:r.aliveOut,c:cc,u:uu}); });
+  const xs=pts.map(p=>({x:xOf(p.t),a:p.a,c:p.c,u:p.u,t:p.t}));
+  const labs=pts.map(p=>when(p.t));
+  mk('chAlive',{type:'line',data:{labels:labs,datasets:[{label:'Activos',data:pts.map(p=>p.a*100),borderColor:P[0],backgroundColor:P[0]+'22',fill:true,stepped:true,pointRadius:0},{label:'Convertidos',data:pts.map(p=>p.c*100),borderColor:P[1],stepped:true,pointRadius:0},{label:'Bajas',data:pts.map(p=>p.u*100),borderColor:P[6],stepped:true,pointRadius:0}]},
+    options:{plugins:{tooltip:{callbacks:{label:c=>c.dataset.label+': '+N1.format(c.parsed.y)+' %'}}},scales:{x:{...gridX(),ticks:{maxTicksLimit:10}},y:{...gridY(),min:0,max:100,ticks:{callback:v=>v+' %'}}}}});
+  $('#in-alive').textContent=`Al terminar el calendario sigue activo el ${pct1(sum.aliveEnd)} de la cohorte; el ${pct1(S.N?sum.un/S.N:0)} se dio de baja y el ${pct1(S.N?sum.conv/S.N:0)} convirtió.`;
+
+  /* acumulado */
+  let cr=0, cx=0; const cumR=[], cumC=[]; rows.forEach(r=>{ cr+=r.rev*S.N; cx+=r.cost*S.N; cumR.push(cr); cumC.push(cx); });
+  mk('chCum',{type:'line',data:{labels:rows.map(r=>when(r.t)),datasets:[{label:'Revenue incremental',data:cumR,borderColor:P[1],backgroundColor:P[1]+'22',fill:true,pointRadius:0,tension:.2},{label:'Coste de envíos',data:cumC,borderColor:P[6],pointRadius:0,tension:.2}]},
+    options:{plugins:{tooltip:{callbacks:{label:c=>c.dataset.label+': '+eur(c.parsed.y)}}},scales:{x:{...gridX(),ticks:{maxTicksLimit:10}},y:{...gridY(),ticks:{callback:v=>int(v/1000)+' k'}}}}});
+  const be=cumR.findIndex((v,i)=>v>cumC[i]*2);
+  $('#in-cum').textContent=`Cada euro gastado en envíos devuelve ${N1.format(sum.cost?sum.rev/sum.cost:0)} € de revenue incremental. El coste total del flujo es ${eur(sum.cost)}.`;
+
+  /* por envío */
+  mk('chTouch',{type:'bar',data:{labels:rows.map((r,i)=>(i+1)+' · '+when(r.t)),datasets:[{label:'Conversión por lead',data:rows.map(r=>r.conv*100),backgroundColor:rows.map(r=>r.ch==='e'?P[0]:P[1]),borderRadius:2}]},
+    options:{plugins:{legend:{display:false},tooltip:{callbacks:{title:i=>rows[i[0].dataIndex].name,label:c=>N2.format(c.parsed.y)+' % de los leads · '+(rows[c.dataIndex].ch==='e'?'email':'SMS')}}},scales:{x:{...gridX(),ticks:{maxRotation:70,minRotation:60,autoSkip:true,maxTicksLimit:22}},y:{...gridY(),ticks:{callback:v=>v+' %'}}}}});
+
+  /* horizonte */
+  const hz=[[.25,'6 h'],[1,'24 h'],[3,'3 d'],[7,'7 d'],[14,'14 d'],[30,'30 d'],[60,'60 d'],[90,'90 d'],[180,'180 d']];
+  mk('chHor',{type:'bar',data:{labels:hz.map(h=>h[1]),datasets:[{label:'Revenue acumulado',data:hz.map(h=>revShare(rows,h[0])*100),backgroundColor:hz.map((h,i)=>h[0]<=1?P[2]:P[0]),borderRadius:3}]},
+    options:{plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>N1.format(c.parsed.y)+' % del revenue'}}},scales:{x:{...gridX(),title:{display:true,text:'Tiempo desde el inicio'}},y:{...gridY(),min:0,max:100,ticks:{callback:v=>v+' %'}}}}});
+
+  /* canales */
+  mk('chChan',{type:'bar',data:{labels:['Email','SMS'],datasets:[{label:'Revenue',data:[sum.revE,sum.revS],backgroundColor:P[1],borderRadius:3},{label:'Coste',data:[sum.costE,sum.costS],backgroundColor:P[6],borderRadius:3}]},
+    options:{plugins:{tooltip:{callbacks:{label:c=>c.dataset.label+': '+eur(c.parsed.y)}}},scales:{x:gridX(),y:{...gridY(),ticks:{callback:v=>int(v/1000)+' k'}}}}});
+  $('#kv-chan').innerHTML=`<span>ROI email <b>${N1.format(sum.costE?(sum.revE-sum.costE)/sum.costE:0)}×</b></span><span>ROI SMS <b>${N1.format(sum.costS?(sum.revS-sum.costS)/sum.costS:0)}×</b></span><span>Envíos email <b>${int(sum.sendsE)}</b></span><span>Envíos SMS <b>${int(sum.sendsS)}</b></span>`;
+
+  /* estrategias */
+  const sA=summarize(simulate(par,flatSched()),S.N), sB=summarize(simulate(par,aggSched()),S.N);
+  const strat=[['Tu calendario',sum],['Email semanal constante',sA],['Ritmo agresivo diario',sB]];
+  mk('chStrat',{type:'bar',data:{labels:strat.map(s=>s[0]),datasets:[{label:'Beneficio neto',data:strat.map(s=>s[1].net),backgroundColor:[P[0],P[7]+'99',P[2]],borderRadius:3,yAxisID:'y'},{type:'line',label:'Bajas (%)',data:strat.map(s=>S.N?s[1].un/S.N*100:0),borderColor:P[6],backgroundColor:P[6],yAxisID:'y1',pointRadius:4,showLine:false}]},
+    options:{plugins:{tooltip:{callbacks:{label:c=>c.dataset.label==='Bajas (%)'?'Bajas: '+N1.format(c.parsed.y)+' %':'Neto: '+sgn(c.parsed.y)}}},scales:{x:gridX(),y:{...gridY(),ticks:{callback:v=>int(v/1000)+' k'}},y1:{position:'right',grid:{display:false},beginAtZero:true,ticks:{callback:v=>v+' %'}}}}});
+  const bestS=strat.slice().sort((a,b)=>b[1].net-a[1].net)[0];
+  $('#in-strat').textContent=`Con estas hipótesis el mejor neto es «${bestS[0]}». El flujo concentrado en las primeras 24 horas obtiene ${sgn(sum.net-sA.net)} frente al email semanal y ${sgn(sum.net-sB.net)} frente al ritmo agresivo, con ${N1.format(S.N?(sB.un-sum.un)/S.N*100:0)} puntos menos de bajas que este último.`;
+
+  /* tornado */
+  const run=(o)=>summarize(simulate({...par,...o},sched),S.N).net;
+  const H=PARAMS.sensitivity_shock; /* labels below say 25 %: keep params.sensitivity_shock = 0.25 */
+  const tor=[['Respuesta +25 %',run({kR:par.kR*(1+H)})],['Respuesta −25 %',run({kR:par.kR*(1-H)})],['Valor +25 %',run({V:par.V*(1+H)})],['Valor −25 %',run({V:par.V*(1-H)})],['Incrementalidad +25 %',run({inc:Math.min(1,par.inc*(1+H))})],['Incrementalidad −25 %',run({inc:par.inc*(1-H)})],['Bajas +25 %',run({ue:par.ue*(1+H),us:par.us*(1+H)})],['Bajas −25 %',run({ue:par.ue*(1-H),us:par.us*(1-H)})],['Coste SMS +25 %',run({cs:par.cs*(1+H)})],['Coste SMS −25 %',run({cs:par.cs*(1-H)})]].map(([l,v])=>[l,v-sum.net]).sort((a,b)=>b[1]-a[1]);
+  mk('chTor',{type:'bar',data:{labels:tor.map(x=>x[0]),datasets:[{data:tor.map(x=>x[1]),backgroundColor:tor.map(x=>x[1]>=0?P[1]:P[6]),borderRadius:3}]},
+    options:{indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>sgn(c.parsed.x)}}},scales:{x:{...gridY(),ticks:{callback:v=>int(v/1000)+' k'}},y:gridX()}}});
+
+  /* tráfico */
+  const tb=BUCK.map(()=>({e:0,s:0})); rows.forEach(r=>{ tb[bucketOf(r.t)][r.ch]+=r.clicks*S.N; });
+  mk('chTrafP',{type:'bar',data:{labels:BUCK.map(b=>b[1]),datasets:[{label:'Visitas por email',data:tb.map(x=>x.e),backgroundColor:P[0],stack:'a',borderRadius:2},{label:'Visitas por SMS',data:tb.map(x=>x.s),backgroundColor:P[1],stack:'a',borderRadius:2}]},
+    options:{plugins:{title:{display:true,text:'Visitas a landings por tramo',color:css('--text2')},tooltip:{callbacks:{label:c=>c.dataset.label+': '+int(c.parsed.y)}}},scales:{x:{...gridX(),stacked:true},y:{...gridY(),stacked:true,ticks:{callback:v=>int(v/1000)+' k'}}}}});
+  const byL={}; rows.forEach(r=>{ const o=byL[r.dest]||(byL[r.dest]={n:0,cl:0,cv:0,rv:0}); o.n++; o.cl+=r.clicks*S.N; o.cv+=r.conv*S.N; o.rv+=r.rev*S.N; });
+  const lr=Object.entries(byL).sort((a,b)=>b[1].cl-a[1].cl);
+  mk('chTrafL',{type:'bar',data:{labels:lr.map(x=>x[0]),datasets:[{data:lr.map(x=>x[1].cl),backgroundColor:P[3],borderRadius:3}]},
+    options:{indexAxis:'y',plugins:{legend:{display:false},title:{display:true,text:'Visitas por landing de destino',color:css('--text2')},tooltip:{callbacks:{label:c=>int(c.parsed.x)+' visitas'}}},scales:{x:{...gridY(),ticks:{callback:v=>int(v/1000)+' k'}},y:{...gridX(),ticks:{autoSkip:false}}}}});
+  $('#traf-table').innerHTML='<thead><tr><th class="tl">Landing</th><th>Envíos</th><th>Visitas</th><th>Conversiones</th><th>Conv. por visita</th><th>Revenue</th></tr></thead><tbody>'+lr.map(([k,v])=>`<tr><td class="tl name">${esc(k)}</td><td>${v.n}</td><td>${int(v.cl)}</td><td>${int(v.cv)}</td><td>${pct1(v.cl?v.cv/v.cl:0)}</td><td>${eur(v.rv)}</td></tr>`).join('')+`<tr><td class="tl name"><b>Total</b></td><td>${rows.length}</td><td>${int(sum.clicks)}</td><td>${int(sum.conv)}</td><td>${pct1(sum.clicks?sum.conv/sum.clicks:0)}</td><td>${eur(sum.rev)}</td></tr></tbody>`;
+
+  /* funnel */
+  const G=S.g, pl=pools(G);
+  const rowsF=[
+    ['Visitas al sitio',pl.vis,'Last visited site: reminder T1 1 h (sin resultados todavía)',null,'miss'],
+    ['Alta paso 1 (formulario corto)',pl.s1,'',null,''],
+    ['Alta paso 2 (formulario largo)',pl.s2,'',null,''],
+    ['Solicitud enviada · Financiar Applied',pl.applied,'Welcome T1 a T3 · Reminder applied',  'applied',''],
+    ['Aceptados por algún lender',pl.acc,'Venta: sale del remarketing de captación',null,'out'],
+    ['Rechazado por todos los lenders',pl.fail,'Gracias / T&C comparador','fail','']
+  ];
+  const mx2=pl.vis;
+  let fv=''; rowsF.forEach(([n,v,rm,k,cls])=>{ const sel=k&&k===S.type; fv+=`<div class="fs ${cls} ${sel?'sel':''}"><div class="n">${n}</div><div class="bar"><i style="width:${Math.max(1.5,v/mx2*100)}%"></i><b>${int(v)}</b></div><div class="rm ${sel?'on':''}">${esc(rm)}</div></div>`; });
+  fv+='<div class="sec-title" style="margin:10px 0 0">Puertas de entrada al remarketing (grupo por mes)</div>';
+  [['Abandono antes de solicitar',pl.first,'first','First reminder T1 a T4: 1 h, 1 d, 3 d, 6 d'],['Solicitud enviada',pl.applied,'applied','Welcome 1 h, 2 d, 4 d · Reminder 1 d, 3 d, 5 d'],['Rechazado por todos',pl.fail,'fail','T&C créditos 8 d, 20 d, 35 d'],['Lead con ASNEF',pl.asnef,'asnef','ASNEF T1 1 h y T2 2 d'],['Lead de alta calidad',pl.hq,'hq','Gracias triple 1 h'],['Base fría',pl.cold,'cold','Recordatorios largos comprimidos a 180 d']].forEach(([n,v,k,rm])=>{
+    fv+=`<div class="fs ${k===S.type?'sel':''}"><div class="n">${n}</div><div class="bar"><i style="width:${Math.max(1.5,v/mx2*100)}%"></i><b>${int(v)}</b></div><div class="rm ${k===S.type?'on':''}">${rm}</div></div>`; });
+  $('#funnel-vis').innerHTML=fv;
+  const port=Object.keys(TYPES).map(k=>{ const p=paramsOf(k), r=simulate(p,TYPES[k].sched.map(x=>x.slice())), N=pl[k]; const s=summarize(r,N); return {k,label:TYPES[k].label,N,s,ltv:TYPES[k].L0+(N?s.net/N:0)}; });
+  mk('chPort',{type:'bar',data:{labels:port.map(p=>short(p.label.replace(/ \(.*\)/,''),26)),datasets:[{data:port.map(p=>p.s.net),backgroundColor:port.map(p=>p.k===S.type?P[2]:P[0]),borderRadius:3}]},
+    options:{indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>sgn(c.parsed.x)}}},scales:{x:{...gridY(),ticks:{callback:v=>int(v/1000)+' k'}},y:{...gridX(),ticks:{autoSkip:false}}}}});
+  $('#port-table').innerHTML='<thead><tr><th class="tl">Segmento</th><th>Grupo</th><th>Neto</th><th>ROI</th><th>LTV por lead</th></tr></thead><tbody>'+port.map(p=>`<tr><td class="tl name">${esc(p.label)}${p.k===S.type?'<span class="tag">elegido</span>':''}</td><td>${int(p.N)}</td><td class="${p.s.net>=0?'good':'bad'}">${sgn(p.s.net)}</td><td>${N1.format(p.s.roi)}×</td><td>${eur2(p.ltv)}</td></tr>`).join('')+`<tr><td class="tl name"><b>Total</b></td><td>${int(port.reduce((s,p)=>s+p.N,0))}</td><td>${sgn(port.reduce((s,p)=>s+p.s.net,0))}</td><td></td><td></td></tr></tbody>`;
+  const topP=port.slice().sort((a,b)=>b.s.net-a.s.net)[0];
+  $('#in-port').textContent=`El segmento que más aporta con estos tamaños es «${topP.label}» (${sgn(topP.s.net)}). Los grupos se solapan en parte (por ejemplo ASNEF y rechazados), así que el total es orientativo.`;
+
+  /* auditoría pizarra */
+  $('#audit').innerHTML=[
+    ['Eventos activos','26 emails distintos salen de eventos: Welcome, First reminder, Reminder applied, T&C créditos, Gracias triple, ASNEF, Life event, Trustpilot y recordatorios largos.'],
+    ['Eventos «sin resultados»','Last visited site (T1 1 h) y Reminder event F24 (TFBank = Failed) aparecen marcados sin resultados. Conviene auditarlos antes de reinvertir en ellos.'],
+    ['Puntos de evento que faltan','La pizarra marca como ausentes el rechazo general de lenders y varios cruces de decisión. Sin ese evento no se puede segmentar el flujo T&C.'],
+    ['Enlaces por cambiar','Los tres envíos T&C (8 d, 20 d, 35 d) están anotados con «need to change link». Este calendario los apunta al comparador T&C.'],
+    ['Frecuencia a cambiar','Los recordatorios largos de 55, 110, 190, 230, 300 y 450 días se han comprimido a 55, 110, 145 y 180 días para que el lead muera a los 6 meses.'],
+    ['Lista sin limpiar','«Do not clean»: se mantiene toda la lista, pero el calendario corta el contacto a los 180 días y deja una baja suave con preferencias.']
+  ].map(([h,p])=>`<div class="pcard"><h4>${h}</h4><p>${p}</p></div>`).join('');
+}
+
+/* ------------------------------------------------ eventos */
+function init(){
+  $('#f-type').innerHTML=Object.entries(TYPES).map(([k,t])=>`<option value="${k}">${esc(t.label)}</option>`).join('');
+  $('#mods').innerHTML=Object.entries(MODS).map(([k,m])=>`<label><input type="checkbox" class="chk" data-mod="${k}"> ${esc(m.label)}</label>`).join('');
+  applyType('applied');
+  $('#f-company').addEventListener('input',e=>{ S.company=e.target.value; render(); });
+  $('#f-goal').addEventListener('input',e=>{ S.goal=e.target.value; const m=KW.find(([re])=>re.test(S.goal)); if(m&&m[1]!==S.type){ applyType(m[1]); S.N=S.N; } render(); });
+  $('#f-type').addEventListener('change',e=>{ applyType(e.target.value); render(); });
+  $('#f-leads').addEventListener('input',e=>{ const v=parseFloat(e.target.value); if(v>0){ S.N=v; render(); } });
+  [['f-v','V'],['f-l0','L0'],['f-ce','ce'],['f-cs','cs']].forEach(([id,k])=>$('#'+id).addEventListener('input',e=>{ const v=parseFloat(e.target.value); if(v>=0){ S[k]=v; render(); } }));
+  $('#f-kr').addEventListener('input',e=>{ S.kR=+e.target.value; $('#o-kr').textContent='×'+N2.format(S.kR); render(); });
+  $('#f-inc').addEventListener('input',e=>{ S.inc=+e.target.value/100; $('#o-inc').textContent=e.target.value+' %'; render(); });
+  $('#mods').addEventListener('change',e=>{ const c=e.target.closest('[data-mod]'); if(!c) return; c.checked?S.mods.add(c.dataset.mod):S.mods.delete(c.dataset.mod); render(); });
+  [['g-vis','vis',1],['g-s1','s1',100],['g-s2','s2',100],['g-ap','ap',100],['g-ac','ac',100],['g-cold','cold',1]].forEach(([id,k,d])=>$('#'+id).addEventListener('input',e=>{ const v=parseFloat(e.target.value); if(v>=0){ S.g[k]=v/d; render(); } }));
+  if(window.matchMedia) window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>render());
+  new MutationObserver(()=>render()).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+  render();
+}
+init();
+</script>
